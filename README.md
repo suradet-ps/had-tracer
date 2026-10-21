@@ -1,25 +1,36 @@
 # HAD Tracer
 
-HAD Tracer is a read-only clinical tracer desktop application for high-alert drugs (HAD). It reads HOSxP (MySQL/MariaDB), evaluates drug-specific laboratory alerts, and guides a multidisciplinary team through a seven-phase tracer review, findings, CAPA, and re-trace planning.
+A local-first clinical tracer workspace for high-alert drugs (HAD). It reads HOSxP, surfaces drug-specific laboratory alerts, and guides a multidisciplinary team through a seven-phase tracer review, findings, CAPA, and re-trace planning.
 
-The product is designed around HA Edition 6 and 3P Safety: Patient Safety, Personnel Safety, and People Safety.
+Built for Thai hospitals working under HA Edition 6 and 3P Safety: Patient Safety, Personnel Safety, and People Safety.
 
-## What It Does
+## Design DNA
 
-- Connects to HOSxP with a read-only MySQL user.
-- Probes the live schema before use and reports missing capabilities.
-- Searches patients by HN or name.
-- Shows HAD orders, laboratory results, OPD and IPD vital signs, allergies, and diagnoses.
-- Curates a hospital HAD catalog mapped to `drugitems.icode`.
-- Evaluates configurable laboratory alert rules with versioning.
-- Creates tracer cases from a patient or an alert.
-- Provides a seven-phase tracer worksheet with evidence notes.
-- Tracks findings, risk score, CAPA, and effectiveness notes.
-- Exports a printable one-page tracer narrative and KPI reference view.
-- Backs up, exports, imports, and restores the local SQLite store.
-- Keeps an audit log for critical actions.
+HAD Tracer borrows the clarity of a developer platform and the restraint of a clinical record.
 
-## What It Does Not Do
+- Deep teal anchors the sidebar, hero band, and footer.
+- Bright green is reserved for the primary action and critical safety cues.
+- White surfaces, thin hairlines, and 12px cards keep clinical content readable.
+- Euclid Circular A drives display type, with Sarabun for Thai text and Source Code Pro for clinical codes.
+- Buttons are pills. Cards are calm. Color is used to encode severity, not decoration.
+- Every screen answers one question: what happened, what should have happened, and what do we do next.
+
+## Capabilities
+
+- Read-only HOSxP connection with encrypted credentials.
+- Schema probe before use, with a capability report.
+- Patient search by HN or name.
+- HAD cockpit with orders, laboratory results, OPD and IPD vitals, allergies, and diagnoses.
+- HAD catalog mapped to `drugitems.icode`, with a per-drug safety bundle.
+- Versioned laboratory alert rules with drug context.
+- Alert board with acknowledge, override, resolve, and audit.
+- Seven-phase tracer worksheet with evidence notes.
+- Findings, risk score, CAPA, and effectiveness notes.
+- Dashboard, standard reference, and KPI reference views.
+- Local SQLite store with backup, JSON export, JSON import, and restore.
+- Audit log for critical actions.
+
+## Boundaries
 
 - It never writes to HOSxP.
 - It is not a CPOE, eMAR, or dispensing system.
@@ -45,7 +56,7 @@ had-tracer/
 - Frontend: Leptos 0.8, client-side rendered to WASM.
 - Database client: sqlx 0.9.
 - Credential encryption: encryptman with OS keychain.
-- Print view: browser Print to PDF from the report screen.
+- Report output: browser Print to PDF from the report screen.
 
 ## Requirements
 
@@ -55,8 +66,6 @@ had-tracer/
 - Tauri CLI 2.
 - Microsoft Edge WebView2 Runtime on Windows.
 - A HOSxP database user with SELECT-only grants.
-
-Install the build tools:
 
 ```text
 rustup target add wasm32-unknown-unknown
@@ -78,8 +87,6 @@ The app also sets the session to read-only and applies a statement timeout, but 
 
 ## Run
 
-Development:
-
 ```text
 cargo tauri dev
 ```
@@ -92,7 +99,7 @@ cargo tauri build --no-bundle
 
 The executable is written under `target/release/`.
 
-Frontend-only check:
+Frontend-only build:
 
 ```text
 trunk build apps/had-tracer-app/frontend/index.html --release
@@ -109,9 +116,9 @@ trunk build apps/had-tracer-app/frontend/index.html --release
 7. Complete the seven-phase worksheet, record findings, and add CAPA.
 8. Use Settings to create a backup and verify the backup manifest.
 
-## Schema Contract
+## HOSxP Schema Guardrails
 
-The verified schema contract at Sa Bophospital is documented in `AGENTS.md`. Important points:
+The app is built around the verified HOSxP schema at the pilot site. Site-specific details stay in `AGENTS.md`; the public README keeps the reusable rules:
 
 - `opitemrece` is not a drug-only table. Always join `drugitems`.
 - `drugusage` uses `name1`, not `name`.
@@ -122,7 +129,7 @@ The verified schema contract at Sa Bophospital is documented in `AGENTS.md`. Imp
 - `opd_allergy.agent` has no drug code and must be matched as text.
 - ICD-10 joins need `LEFT JOIN` and a fallback label.
 
-## Quality and Safety
+## Data and Safety
 
 - Read-only HOSxP access.
 - PHI stays local and is not logged.
@@ -131,7 +138,7 @@ The verified schema contract at Sa Bophospital is documented in `AGENTS.md`. Imp
 - Backup integrity is checked with `PRAGMA integrity_check`.
 - Backup is not synchronization.
 - Test a restore before relying on a backup in production.
-- Clinical thresholds are local policy. They require hospital approval.
+- Clinical thresholds are local policy and require hospital approval.
 
 ## Checks
 
@@ -142,7 +149,7 @@ cargo test --workspace
 cargo check -p had-tracer-frontend --target wasm32-unknown-unknown
 ```
 
-## Known MVP Limits
+## MVP Limits
 
 - Single-user local store. Multi-user collaboration is not implemented.
 - No BCMA, eMAR, or smart pump integration.
