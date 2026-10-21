@@ -1,0 +1,8 @@
+/target
+/apps/had-tracer-app/frontend/dist
+/apps/had-tracer-app/gen
+*.db
+*.db-shm
+*.db-wal
+.env
+.DS_Store
