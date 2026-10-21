@@ -91,9 +91,9 @@ Five crates, one hard law: HOSxP is read-only, without exceptions.
   Tauri IPC boundary. `had-tracer-app` is the Tauri 2 shell. The frontend
   is Leptos 0.8, compiled to WASM, and built with `trunk`.
 
-**The interface is deliberately hot.** HAD is a risk, so the product does
-not wear a calm green wellness palette. It uses deep ember for the anchor
-surfaces, safety red for primary actions, ember orange for secondary
+**The interface is deliberately warm.** HAD is a risk, so the product does
+not wear a calm green wellness palette. It uses soft ember for the anchor
+surfaces, muted safety red for primary actions, warm orange for secondary
 signals, warm white for clinical content, 12px cards, and pill buttons.
 Severity is encoded in color, but color never replaces the evidence.
 
