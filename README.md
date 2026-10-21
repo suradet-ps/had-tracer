@@ -1,158 +1,185 @@
 # HAD Tracer
 
-A local-first clinical tracer workspace for high-alert drugs (HAD). It reads HOSxP, surfaces drug-specific laboratory alerts, and guides a multidisciplinary team through a seven-phase tracer review, findings, CAPA, and re-trace planning.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tauri 2](https://img.shields.io/badge/Tauri-2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app/)
+[![Leptos 0.8](https://img.shields.io/badge/Leptos-0.8-blue.svg)](https://leptos.dev)
+[![Rust 1.94+](https://img.shields.io/badge/Rust-1.94%2B-orange.svg?logo=rust&logoColor=white)](https://www.rust-lang.org/)
+[![sqlx 0.9](https://img.shields.io/badge/sqlx-0.9-336791.svg)](https://github.com/launchbadge/sqlx)
 
-Built for Thai hospitals working under HA Edition 6 and 3P Safety: Patient Safety, Personnel Safety, and People Safety.
+---
 
-## Design DNA
+## ◆ PULSE
 
-HAD Tracer borrows the clarity of a developer platform and the restraint of a clinical record.
+One question, answered with evidence: **which high-alert drug is running,
+what does the laboratory say, and where did the process break?**
 
-- Deep ember anchors the sidebar, hero band, and footer.
-- Safety red and ember orange are reserved for primary actions and critical safety cues.
-- Warm white surfaces, thin hairlines, and 12px cards keep clinical content readable.
-- Euclid Circular A drives display type, with Sarabun for Thai text and Source Code Pro for clinical codes.
-- Buttons are pills. Cards are calm. Color is used to encode severity, not decoration.
-- Every screen answers one question: what happened, what should have happened, and what do we do next.
+The moment an INR returns at 6.2, a potassium at 6.0, or a glucose at 48,
+someone has to act. HAD Tracer reads the hospital's HOSxP database,
+strictly read-only, evaluates drug-specific laboratory rules, and walks
+the team through a seven-phase clinical tracer. It does not guess. It does
+not write. It shows the order, the result, the gap, and the next move.
 
-## Capabilities
+The frame is HA Edition 6 and 3P Safety: Patient Safety, Personnel
+Safety, and People Safety.
 
-- Read-only HOSxP connection with encrypted credentials.
-- Schema probe before use, with a capability report.
-- Patient search by HN or name.
-- HAD cockpit with orders, laboratory results, OPD and IPD vitals, allergies, and diagnoses.
-- HAD catalog mapped to `drugitems.icode`, with a per-drug safety bundle.
-- Versioned laboratory alert rules with drug context.
-- Alert board with acknowledge, override, resolve, and audit.
-- Seven-phase tracer worksheet with evidence notes.
-- Findings, risk score, CAPA, and effectiveness notes.
-- Dashboard, standard reference, and KPI reference views.
-- Local SQLite store with backup, JSON export, JSON import, and restore.
-- Audit log for critical actions.
+| P0-P4 ▣ | P5 ▣ | P6 ▣ | P7 ◐ | P8 ☐ |
+|---|---|---|---|---|
+| Foundation, HOSxP, store, alerts, tracer | Red-orange safety interface | Docs and build | Pilot | v1.0 |
 
-## Boundaries
+*Core, schema probe, local store, alert engine, tracer workflow, findings,
+CAPA, backup, and the red-orange interface are sealed. The desktop build
+is clean. The pilot is the next honest step.*
 
-- It never writes to HOSxP.
-- It is not a CPOE, eMAR, or dispensing system.
-- It does not replace bedside documentation.
-- It does not send patient data to the cloud.
-- It does not make autonomous clinical decisions.
+> Built with Tauri 2 + Leptos 0.8, answered by `had-tracer-core`, read from
+> a verified HOSxP schema through `sqlx`, never a write, never a hidden
+> clinical decision.
+>
+> **suradet-ps**, artifact keeper
 
-## Architecture
+---
 
-```text
-had-tracer/
-  crates/
-    had-tracer-core/      Pure domain: HAD catalog, alert parser/evaluator, tracer model
-    had-tracer-config/    Encrypted HOSxP connection settings and site settings
-    had-tracer-hosxp/     SELECT-only HOSxP connector and schema probe
-    had-tracer-store/     Local SQLite store, migrations, seed, backup/export/import
-    had-tracer-bridge/    Tauri invoke transport for WASM
-  apps/had-tracer-app/    Tauri 2 shell, commands, and Leptos 0.8 frontend
-```
+## ◆ IGNITION
 
-- HIS data source: HOSxP MySQL/MariaDB, read-only.
-- App data: local SQLite file under the platform data directory.
-- Frontend: Leptos 0.8, client-side rendered to WASM.
-- Database client: sqlx 0.9.
-- Credential encryption: encryptman with OS keychain.
-- Report output: browser Print to PDF from the report screen.
-
-## Requirements
-
-- Rust 1.94 or newer. sqlx 0.9 requires Rust 1.94.
-- `wasm32-unknown-unknown` target.
-- `trunk` 0.21 or newer.
-- Tauri CLI 2.
-- Microsoft Edge WebView2 Runtime on Windows.
-- A HOSxP database user with SELECT-only grants.
+Two installs, one test, one launch.
 
 ```text
 rustup target add wasm32-unknown-unknown
-cargo install trunk
-cargo install tauri-cli --version "^2"
-```
-
-## HOSxP Read-Only User
-
-Create a dedicated account and grant only SELECT:
-
-```sql
-CREATE USER 'had_ro'@'%' IDENTIFIED BY 'replace-with-a-strong-password';
-GRANT SELECT ON hos.* TO 'had_ro'@'%';
-FLUSH PRIVILEGES;
-```
-
-The app also sets the session to read-only and applies a statement timeout, but the database grant is the primary control.
-
-## Run
-
-```text
+cargo install trunk --locked
+cargo install tauri-cli --locked
+cargo test
 cargo tauri dev
 ```
 
-Production build without installer:
+The release build is a single executable at
+`target/release/had-tracer-app.exe`.
+
+<details>
+<summary>Notes for hospital PCs</summary>
+
+- Windows needs the WebView2 Runtime. Updated Windows 10 and 11 normally
+  have it already.
+- The build is unsigned for v0.x. Expect the SmartScreen prompt, then
+  coordinate allow-listing with hospital IT.
+- HOSxP access is SELECT-only. The database grant is the primary control;
+  the app also opens a read-only session and applies a statement timeout.
+- Updates are manual by design. Hospital IT controls what runs on clinical
+  workstations.
+
+</details>
+
+---
+
+## ◆ ANATOMY
+
+Five crates, one hard law: HOSxP is read-only, without exceptions.
+
+- **Decides** - `had-tracer-core` is pure Rust. It owns the HAD catalog,
+  the laboratory result parser, the rule evaluator, the tracer phases, the
+  findings, and the CAPA model. No SQL, no filesystem, no Tauri, no network.
+- **Reads** - `had-tracer-hosxp` talks to MySQL/MariaDB through `sqlx`.
+  Parameterized `SELECT`s only, explicit columns, a schema probe before
+  use, a read-only session, a statement timeout, and a guard that rejects
+  anything that is not a single read statement.
+- **Remembers** - `had-tracer-store` is a local SQLite file. It owns the
+  HAD catalog, rules, alert events, tracer cases, findings, CAPA, audit
+  log, backup, JSON export, JSON import, and file restore. WAL mode,
+  foreign keys, integrity checks, UUID keys.
+- **Guards secrets** - `had-tracer-config` encrypts HOSxP credentials with
+  AES-256-GCM. The master key lives in the OS keychain. The password is a
+  `secrecy::SecretString` and never touches a log.
+- **Asks and shows** - `had-tracer-bridge` carries typed payloads over the
+  Tauri IPC boundary. `had-tracer-app` is the Tauri 2 shell. The frontend
+  is Leptos 0.8, compiled to WASM, and built with `trunk`.
+
+**The interface is deliberately hot.** HAD is a risk, so the product does
+not wear a calm green wellness palette. It uses deep ember for the anchor
+surfaces, safety red for primary actions, ember orange for secondary
+signals, warm white for clinical content, 12px cards, and pill buttons.
+Severity is encoded in color, but color never replaces the evidence.
+
+**The schema is not assumed.** The connector is built against a verified
+HOSxP schema contract. It knows that `opitemrece` is not a drug-only table,
+that `drugusage` uses `name1`, that `sp_use` uses `sp_name`, that
+`lab_items` uses `lab_items_unit`, that `lab_head` has no `an`, and that
+IPD vitals live in `ipt_vital_sign` plus `vital_sign`. The site-specific
+detail lives in `AGENTS.md`. Missing tables and columns degrade into a
+visible capability report, never a silent wrong answer.
+
+---
+
+## ◆ RITUALS
+
+**The core ceremony** - from a patient to a finding:
+
+1. Open Settings. Enter the HOSxP connection and run the schema probe.
+2. Open HAD Catalog. Map each seeded HAD entry to a real
+   `drugitems.icode`. Add or revise the safety bundle.
+3. Open Rules. Map each rule to a real `lab_items.lab_items_code`, set the
+   unit, and activate it after local approval.
+4. Search for a patient. Read the HAD cockpit: orders, labs, OPD and IPD
+   vitals, allergies, diagnoses.
+5. Evaluate alerts. Acknowledge, override with a reason, or resolve with a
+   note. Every action lands in the audit log.
+6. Create a tracer case. Complete the seven phases. Record what should
+   have happened, what actually happened, and where the system failed.
+7. Turn the gap into a finding. Give it a severity, a risk score, a cause
+   category, an owner, and a CAPA.
+8. Back up the local store. Verify the manifest. Test a restore before
+   trusting it.
+
+**The ceremony of evidence** - a non-numeric result, a qualified value, a
+unit mismatch, or a missing threshold is surfaced as uncertainty. It is
+never collapsed into a normal verdict. The screen shows the raw value and
+the rule it met.
+
+**The ceremony of silence** - patient data stays local. No cloud sync, no
+telemetry, no PHI in logs. The app reads HOSxP and writes only to its own
+SQLite store. A backup is not synchronization.
+
+**The ceremony of restraint** - the tool does not adjust doses, choose
+therapy, or replace the clinician. It presents the order, the laboratory
+result, the policy reference, and the system gap. Clinical judgment
+belongs to the clinical team.
+
+---
+
+## ◆ ECHOES
+
+**Where this artifact is heading**
 
 ```text
-cargo tauri build --no-bundle
+P0-P4 ▸ foundation, HOSxP, store, alerts, tracer ▸ sealed
+P5    ▸ red-orange safety interface                ▸ sealed
+P6    ▸ docs, build, local binary                  ▸ sealed
+P7    ▸ pilot at the hospital                      ▸ ahead
+P8    ▸ v1.0 hardening                             ▸ ahead
 ```
 
-The executable is written under `target/release/`.
+**Raising the artifact** - read `AGENTS.md` first. The hard rules are
+there: HOSxP read-only, parameterized queries only, no PHI in logs,
+credentials encrypted at rest, backups verified with
+`PRAGMA integrity_check`, and clinical thresholds approved locally.
 
-Frontend-only build:
+**Known edges** - single-user local store, no BCMA/eMAR/smart pump
+integration, no scheduled HOSxP polling, a webview print dialog instead of
+a dedicated PDF writer, and no KPI value-entry workflow yet. These are
+written down because an honest artifact names its edges.
 
-```text
-trunk build apps/had-tracer-app/frontend/index.html --release
+**Status** - the local gate is `cargo fmt`, `cargo clippy -- -D warnings`,
+`cargo test`, the WASM frontend check, `trunk build`, and
+`cargo tauri build --no-bundle`. All pass on the current tree.
+
+> ⚠️ HAD Tracer reports what the record contains and what the local rules
+> say. Clinical interpretation belongs to the clinician. This software is
+> not medical advice.
+
+---
+
+```
+  ─────────────────────────────────────────
+   A missed high-alert drug is not a chart error.
+   It is a patient-safety event waiting.
+  ─────────────────────────────────────────
 ```
 
-## First Run
-
-1. Open Settings and enter the HOSxP host, port, database, user, password, and TLS mode.
-2. Use Test Connection. Confirm the schema probe passes.
-3. Open HAD Catalog and map each seeded HAD entry to a real `drugitems.icode`.
-4. Open Rules, map each rule to a real `lab_items.lab_items_code`, set the unit, and activate it.
-5. Search for a patient and open the Patient HAD Cockpit.
-6. Use Evaluate Alerts, then create a tracer case.
-7. Complete the seven-phase worksheet, record findings, and add CAPA.
-8. Use Settings to create a backup and verify the backup manifest.
-
-## HOSxP Schema Guardrails
-
-The app is built around the verified HOSxP schema at the pilot site. Site-specific details stay in `AGENTS.md`; the public README keeps the reusable rules:
-
-- `opitemrece` is not a drug-only table. Always join `drugitems`.
-- `drugusage` uses `name1`, not `name`.
-- `sp_use` uses `sp_name`, not `name`.
-- `lab_items` uses `lab_items_unit`, not `unit`.
-- `lab_head` has no `an`. Join through `vn`.
-- `opdscreen` is OPD only. IPD vitals use `ipt_vital_sign` and `vital_sign`.
-- `opd_allergy.agent` has no drug code and must be matched as text.
-- ICD-10 joins need `LEFT JOIN` and a fallback label.
-
-## Data and Safety
-
-- Read-only HOSxP access.
-- PHI stays local and is not logged.
-- Credentials are encrypted at rest.
-- Every critical action is written to the audit log.
-- Backup integrity is checked with `PRAGMA integrity_check`.
-- Backup is not synchronization.
-- Test a restore before relying on a backup in production.
-- Clinical thresholds are local policy and require hospital approval.
-
-## Checks
-
-```text
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-cargo check -p had-tracer-frontend --target wasm32-unknown-unknown
-```
-
-## MVP Limits
-
-- Single-user local store. Multi-user collaboration is not implemented.
-- No BCMA, eMAR, or smart pump integration.
-- No scheduled background HOSxP polling. Alerts are evaluated on demand.
-- The printable report uses the webview print dialog. A dedicated PDF writer is not included yet.
-- KPI definitions are seeded, but KPI values are entered outside the app until the value-entry workflow is added.
+HAD Tracer is distributed under the [MIT License](LICENSE).
