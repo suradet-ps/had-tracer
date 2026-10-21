@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="150" y1="90" x2="880" y2="940" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6B3A33"/>
+      <stop offset="0.55" stop-color="#3B1E1A"/>
+      <stop offset="1" stop-color="#2A1411"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(250 220) rotate(48) scale(640)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EF8A85" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#EF8A85" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="mark" x1="352" y1="300" x2="672" y2="724" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6B0A8"/>
+      <stop offset="0.55" stop-color="#EF8A85"/>
+      <stop offset="1" stop-color="#E5676B"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="352" y1="512" x2="672" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F2A06B"/>
+      <stop offset="1" stop-color="#EF8A85"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+  </defs>
+
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#bg)"/>
+  <rect x="32" y="32" width="960" height="960" rx="220" fill="url(#glow)"/>
+  <rect x="48" y="48" width="928" height="928" rx="204" fill="none" stroke="#FFFFFF" stroke-opacity="0.08" stroke-width="8"/>
+
+  <g filter="url(#soft)" opacity="0.3">
+    <path d="M352 300 V724" stroke="#E5676B" stroke-width="96" stroke-linecap="round"/>
+    <path d="M672 300 V724" stroke="#E5676B" stroke-width="96" stroke-linecap="round"/>
+  </g>
+
+  <path d="M352 300 V724" stroke="url(#mark)" stroke-width="96" stroke-linecap="round"/>
+  <path d="M672 300 V724" stroke="url(#mark)" stroke-width="96" stroke-linecap="round"/>
+
+  <path d="M352 512 H430 L470 430 L520 600 L560 512 H672"
+        fill="none"
+        stroke="url(#pulse)"
+        stroke-width="56"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+
+  <circle cx="520" cy="600" r="18" fill="#F2A06B"/>
+</svg>
