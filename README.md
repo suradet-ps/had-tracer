@@ -8,9 +8,9 @@ Built for Thai hospitals working under HA Edition 6 and 3P Safety: Patient Safet
 
 HAD Tracer borrows the clarity of a developer platform and the restraint of a clinical record.
 
-- Deep teal anchors the sidebar, hero band, and footer.
-- Bright green is reserved for the primary action and critical safety cues.
-- White surfaces, thin hairlines, and 12px cards keep clinical content readable.
+- Deep ember anchors the sidebar, hero band, and footer.
+- Safety red and ember orange are reserved for primary actions and critical safety cues.
+- Warm white surfaces, thin hairlines, and 12px cards keep clinical content readable.
 - Euclid Circular A drives display type, with Sarabun for Thai text and Source Code Pro for clinical codes.
 - Buttons are pills. Cards are calm. Color is used to encode severity, not decoration.
 - Every screen answers one question: what happened, what should have happened, and what do we do next.
@@ -108,7 +108,7 @@ trunk build apps/had-tracer-app/frontend/index.html --release
 ## First Run
 
 1. Open Settings and enter the HOSxP host, port, database, user, password, and TLS mode.
-2. Use Test Connection. Confirm the schema probe is green.
+2. Use Test Connection. Confirm the schema probe passes.
 3. Open HAD Catalog and map each seeded HAD entry to a real `drugitems.icode`.
 4. Open Rules, map each rule to a real `lab_items.lab_items_code`, set the unit, and activate it.
 5. Search for a patient and open the Patient HAD Cockpit.
