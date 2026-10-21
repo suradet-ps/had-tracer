@@ -3,7 +3,7 @@
 //! Every statement is SELECT-only and every dynamic list is built from
 //! placeholders, never from user-supplied text.
 
-/// Required tables and columns for the Sa Bophospital schema contract.
+/// Required tables and columns for the verified pilot-site schema contract.
 pub const REQUIRED_SCHEMA: &[(&str, &[&str])] = &[
     ("patient", &["hn", "pname", "fname", "lname", "birthday"]),
     ("ovst", &["vn", "hn", "vstdate", "main_dep"]),

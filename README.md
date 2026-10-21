@@ -47,10 +47,12 @@ rustup target add wasm32-unknown-unknown
 cargo install trunk --locked
 cargo install tauri-cli --locked
 cargo test
+cd apps/had-tracer-app
 cargo tauri dev
 ```
 
-The release build is a single executable at
+For a release build, run `cargo tauri build --no-bundle` from
+`apps/had-tracer-app`. The executable is written to the workspace at
 `target/release/had-tracer-app.exe`.
 
 <details>
@@ -167,7 +169,8 @@ written down because an honest artifact names its edges.
 
 **Status** - the local gate is `cargo fmt`, `cargo clippy -- -D warnings`,
 `cargo test`, the WASM frontend check, `trunk build`, and
-`cargo tauri build --no-bundle`. All pass on the current tree.
+`cargo tauri build --no-bundle`, with the frontend and Tauri commands run
+from `apps/had-tracer-app`. All pass on the current tree.
 
 > ⚠️ HAD Tracer reports what the record contains and what the local rules
 > say. Clinical interpretation belongs to the clinician. This software is

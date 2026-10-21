@@ -132,7 +132,7 @@ MVP may run as a single-user desktop app with a local admin role. Role-based acc
 
 HOSxP is the source of truth for patient, visit, drug order, dispensing, laboratory, allergy, diagnosis, and OPD and IPD vital sign data. All access is SELECT-only.
 
-The schema below was verified against the live HOSxP database at Sa Bophospital on 2026-10-21 using `information_schema` and live test queries. All 14 core table names are correct. The column corrections and supporting tables are mandatory.
+The schema below was verified against the live HOSxP database at the pilot site on 2026-10-21 using `information_schema` and live test queries. All 14 core table names are correct. The column corrections and supporting tables are mandatory.
 
 | Data | Table | Verified columns and notes |
 |---|---|---|
@@ -143,7 +143,7 @@ The schema below was verified against the live HOSxP database at Sa Bophospital 
 | Drug master | `drugitems` | `icode`, `name`, `strength`, `units`, `generic_name`, `drugaccount`, `therapeuticgroup`. `therapeutic` is free Thai text, not a coded class. Do not use it for standard grouping. |
 | Sig | `drugusage` | `drugusage` (PK), `name1`, `name2`, `name3`, `shortlist`. The column is `name1`, not `name`. The PK column is `drugusage`, not `code`. |
 | Special use | `sp_use` | `sp_use` (PK), `sp_name`, `name1`, `name2`, `name3`. The column is `sp_name`, not `name`. Use `drugusage` as the primary sig source; `sp_use` is used far less often. |
-| Laboratory header | `lab_head` | `lab_order_number`, `hn`, `vn`, `order_date`, `report_date`. There is no `an` column. At Sa Bophospital there are 415,731 rows and `vn` is populated in 100% of them. Join `lab_head.vn` to `ovst.vn`, then resolve the admission through `ovst.an`. |
+| Laboratory header | `lab_head` | `lab_order_number`, `hn`, `vn`, `order_date`, `report_date`. There is no `an` column. At the pilot site, `vn` is populated on every `lab_head` row. Join `lab_head.vn` to `ovst.vn`, then resolve the admission through `ovst.an`. |
 | Laboratory result | `lab_order` | `lab_order_number`, `lab_items_code`, `lab_order_result`. The primary key is the pair. |
 | Laboratory master | `lab_items` | `lab_items_code`, `lab_items_name`, `lab_items_unit`, `lab_items_normal_value`. The unit column is `lab_items_unit`, not `unit`. |
 | Allergy | `opd_allergy` | `hn`, `agent`, `symptom`, `reporter`, `report_date`, `note`. PK is `(hn, agent)`. No visit key and no drug code. `agent` is free text (`varchar(250)`), so match by name, not by `icode`. |
@@ -166,17 +166,17 @@ Supporting lookup tables:
 
 Schema verification result:
 
-- All 14 core table names exist at Sa Bophospital. No table needs to be renamed.
+- All 14 core table names exist at the pilot site. No table needs to be renamed.
 - Three column names from the earlier draft were wrong: `drugusage.name` must be `drugusage.name1`, `sp_use.name` must be `sp_use.sp_name`, and `lab_items.unit` must be `lab_items.lab_items_unit`.
 - Four supporting tables must be added: `ipt_vital_sign`, `vital_sign`, `kskdepartment`, and `ward`.
 - `lab_head` has no `an`. A query that uses `lab_head.an` fails with MySQL error 42S22.
 - `opdscreen` has no `an` and is OPD only. IPD vital signs come from `ipt_vital_sign` joined to `vital_sign`.
-- `opitemrece` contains both drugs and non-drug charges. At Sa Bophospital it has 6,822,872 rows, of which 3,160,622 are drug lines and 3,661,892 are non-drug lines. Always join `drugitems` when counting or listing drugs, otherwise drug volume is inflated by roughly 2.2 times.
+- `opitemrece` contains both drugs and non-drug charges. At the pilot site, roughly 46% of rows are drug lines and 54% are non-drug lines. Always join `drugitems` when counting or listing drugs, otherwise drug volume is inflated by roughly 2.2 times.
 - `drugitems.therapeutic` is free Thai text with about 300 distinct values. Use `therapeuticgroup`, `generic_name`, or `drugaccount` for grouping instead.
 - `opd_allergy.agent` has no drug code. Match allergy names as text and never assume an `icode` link.
 - `icd101` does not contain every code used in `ovstdiag` or `iptdiag`. In a 30-day sample there were 2,618 orphan rows, including codes such as 9357 and 9929. Use `LEFT JOIN` and `IFNULL(name, icd10)` so patients are not dropped from reports.
-- `sp_use` is used far less often than `drugusage`. At Sa Bophospital, `sp_use` has 327,827 rows but only 5,707 uses in 90 days, while `drugusage` has 55,734 uses in the same period. Do not use `sp_use` as the primary sig source.
-- `opdscreen` laboratory-like fields are sparse. In 72,672 visits in one year, `hba1c` had 172 values, `egfr` 373, `ldl` 2,604, and `creatinine` 7,968. Read laboratory results from `lab_head` and `lab_order`, not from `opdscreen`.
+- `sp_use` is used far less often than `drugusage`. At the pilot site, a 90-day sample showed `sp_use` used far less often than `drugusage`. Do not use `sp_use` as the primary sig source.
+- `opdscreen` laboratory-like fields are sparse. In a one-year sample, only a few hundred to a few thousand values were present for `hba1c`, `egfr`, `ldl`, and `creatinine`. Read laboratory results from `lab_head` and `lab_order`, not from `opdscreen`.
 - `opitemrece.qty` is an integer. Verify the dose unit, dosage form, and package unit before calculating days supply.
 
 Query guardrails:
@@ -884,7 +884,7 @@ UI tests:
 ### Phase 0: Discovery and Foundation
 
 - Confirm MySQL version and read-only user.
-- Freeze the Sa Bophospital schema contract documented in section 7.1.
+- Freeze the pilot-site schema contract documented in section 7.1.
 - Probe the live schema for the confirmed tables, columns, lookup joins, and laboratory and vital sign bridges.
 - Confirm eMAR, BCMA, and smart pump availability. IPD vital tables are confirmed as `ipt_vital_sign` and `vital_sign`.
 - Freeze HAD list v0.1 with the PTC or designated owner.
@@ -933,7 +933,7 @@ UI tests:
 The MVP is complete when all of the following are true:
 
 - The app connects to a staging HOSxP database with a read-only user.
-- The schema probe validates the confirmed Sa Bophospital schema contract, including lookup joins and the `lab_head` `vn` bridge.
+- The schema probe validates the confirmed pilot-site schema contract, including lookup joins and the `lab_head` `vn` bridge.
 - The schema probe reports required tables and columns and identifies missing capabilities.
 - A user can search for a patient by HN and open the HAD cockpit.
 - The cockpit shows active or recent HAD orders and the latest relevant laboratory results.
@@ -959,7 +959,7 @@ The MVP is complete when all of the following are true:
 - Is a dedicated read-only database user available?
 - Does the site have eMAR, BCMA, or smart pump integration? IPD vital tables are confirmed.
 - Is the MVP single-user or multi-user?
-- Will the MVP support only Sa Bophospital or also other HOSxP sites with schema variants?
+- Will the MVP support only the pilot site or also other HOSxP sites with schema variants?
 - After the MVP, should app data remain local SQLite or move to a shared store for multi-user tracer teams?
 - Should backup files be encrypted with an app-managed key or rely on OS disk encryption?
 - Who owns and approves the HAD list?
